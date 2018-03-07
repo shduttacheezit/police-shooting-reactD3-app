@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/react/0.11.0/react.min.js"></script>
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
+    <title>Visualize Police Shooting Data</title>
+    <style type="text/css">body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+    </style>
+  </head>
+    
+    <!--
+      manifest.json provides metadata used when your web app is added to the
+      homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
+    -->
+    
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+  <body>
+    <div id="container"></div>
+
+    <script>
+      var size = 1000;
+      var height = 500;
+      var width = 960;
+      var charge = -0.3;
+
+      var data = d3.range(size).map(function(){
+        return p{r: Math.floor(Math.random() * 8 + 2)};
+      });
+
+      var start = new Date();
+      var time = 0;
+      var ticks = 0;
+
+      var force = d3.layout.force()
+        .size([width, height])
+        .nodes(data)
+        .charge(function(d){
+          return d.r * d.r * charge;
+        })
+        .start();
+
+
+      var Chart = React.createClass({displayName: 'Chart',
+        render: function() {
+          return (
+            React.DOM.svg({width: this.props.width, height: this.props.height}, this.props.children)
+          );
+        }
+      });
+
+      var DataSeries = React.createClass({displayName: 'DataSeries',
+        getDefaultProps: function() {
+          return {
+            title: '',
+            data: []
+          }
+        },
+
+        render: function() {
+
+          var circles = this.props.data.map(function(point, i) {
+            return (
+              React.DOM.circle({cx: point.x, cy: point.y, r: point.r, fill: "steelblue"})
+            )
+          });
+
+          return (
+            React.DOM.g(null, circles)
+          );
+        }
+      });
+
+      var BubbleChart = React.createClass({displayName: 'BubbleChart',
+        render: function() {
+          var data = this.props.data;
+          return (
+            Chart({width: this.props.width, height: this.props.height},
+              DataSeries({data: data})
+            )
+          );
+        }
+      });
+
+      force.on('tick', function(){
+        var renderStart = new Date();
+        React.renderComponent(
+          BubbleChart({data: data, height: height, width: width}),
+          document.getElementById('container')
+        );
+        time += (new Date() - renderStart);
+        ticks++;
+      });
+
+      force.on('end', function(){
+        var totalTime = new Date() - start;
+        console.log('Total Time:', totalTime);
+        console.log('Render Time:', time);
+        console.log('Ticks:', ticks);
+        console.log('Average Time:', totalTime / ticks);
+      });
+
+    </script>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+  </body>
+</html>
